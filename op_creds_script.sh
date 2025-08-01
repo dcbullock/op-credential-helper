@@ -47,18 +47,16 @@ EXAMPLES:
     "${my_name}" --user --otp "Git Site"       # Show username and OTP
     "${my_name}" --format json "Git Site"      # JSON output
     "${my_name}" --format sh "Git Site"        # Shell variables
-    "${my_name}" --FORMAT JSON "Git Site"      # Case insensitive
+    "${my_name}" --format JSON "Git Site"      # Case insensitive
 
 NOTES:
     - Prints passwords on the console for all to see.
-    - Stores non-exported passwords in environment variables.
-    - In X11 environments, password is automatically copied to clipboard when
-      retrieved
+    - Stores passwords in non-exported nvironment variables.
+    - In X11 and MacOS environments, password is automatically copied to
+      clipboard.
     - Requires 1Password CLI (op) to be installed and authenticated
-    - Uses jq for JSON parsing (must be installed)
-    - If no field options (--user, --pass, --otp) are specified, all fields
-      are shown
-    - The format options are case insensitive.
+    - Requires jq to be installed:  jqlang.org
+    - If no field options are specified, default fields are output
 EOF
 }
 
@@ -250,7 +248,7 @@ get_1password_creds() {
 # Parse command line arguments
 parse_args() {
     while [[ $# -gt 0 ]]; do
-        case $(echo "$1" | tr '[:upper:]' '[:lower:]') in
+        case $1 in
             --user)
                 SHOW_USERNAME=true
                 SHOW_ALL=false
