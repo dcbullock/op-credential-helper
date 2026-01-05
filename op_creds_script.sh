@@ -13,7 +13,7 @@ SHOW_USERNAME=false
 SHOW_PASSWORD=false
 SHOW_OTP=false
 SHOW_ALL=true
-FORMAT="text"
+FORMAT="pretty"
 
 my_name=$(basename "$0")
 
@@ -29,25 +29,26 @@ OPTIONS:
     --user         Output only the username
     --pass         Output only the password
     --otp          Output only the OTP code
-    --format FMT   Output format: text (default), json, or sh
+    --output FMT   Output format: pretty (default), text, json, or sh
     -h, --help     Show this help message
 
 ARGUMENTS:
     item_name      Name or ID of the 1Password item
 
 FORMATS:
-    text          text-readable formatted output (default)
-    json           JSON object output
-    sh             Shell variable assignments (suitable for sourcing)
+    pretty        formatted output (default)
+    text          one per item per line, user and then pass
+    json          JSON object output
+    sh            Shell variable assignments (suitable for sourcing)
 
 EXAMPLES:
     "${my_name}"
     "${my_name}" --user "Git Site"             # Show only username
     "${my_name}" --pass "Git Site"             # Show only password
     "${my_name}" --user --otp "Git Site"       # Show username and OTP
-    "${my_name}" --format json "Git Site"      # JSON output
-    "${my_name}" --format sh "Git Site"        # Shell variables
-    "${my_name}" --format JSON "Git Site"      # Case insensitive
+    "${my_name}" --pretty json "Git Site"      # JSON output
+    "${my_name}" --pretty sh "Git Site"        # Shell variables
+    "${my_name}" --pretty JSON "Git Site"      # Case insensitive
 
 NOTES:
     - Prints passwords on the console for all to see.
@@ -95,7 +96,7 @@ get_1password_creds() {
 
 
     # progress for console output
-    if [[ "$format" == "text" ]]; then
+    if [[ "$format" == "pretty" ]]; then
         echo "Connecting to 1Password..." >&2
     fi
 
@@ -132,7 +133,7 @@ get_1password_creds() {
     fi
 
     # Handle clipboard operations in X environment
-    if [[ -n "$DISPLAY" && -n "$PASSWORD" && "$format" == "text" && \
+    if [[ -n "$DISPLAY" && -n "$PASSWORD" && "$format" == "pretty" && \
           ("$show_all" == "true" || "$show_password" == "true") ]]
     then
         if command -v xclip >/dev/null 2>&1; then
@@ -208,6 +209,11 @@ get_1password_creds() {
             ;;
 
         text)
+            echo "${USERNAME-""}" | sed '/^$/d'
+            echo "${PASSWORD-""}" | sed '/^$/d'
+            ;;
+
+        format)
             if [[ "$show_all" == "true" ]]; then
                 # Show all fields (formatted output)
                 echo ""
@@ -272,12 +278,12 @@ parse_args() {
                 fi
                 FORMAT=$(echo "$2" | tr '[:upper:]' '[:lower:]')
                 case "$FORMAT" in
-                    text|json|sh)
+                    format|text|json|sh)
                         # Valid format
                         ;;
                     *)
                         echo "Error: Invalid format '$2'. Must be one of: \
-                              text, json, sh" >&2
+                              format, text, json, sh" >&2
                         exit 1
                         ;;
                 esac
